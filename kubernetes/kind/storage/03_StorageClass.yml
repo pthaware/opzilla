@@ -1,0 +1,93 @@
+# Create StorageClass
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+
+metadata:
+  name: manually-created-storage            # StorageClass name
+
+provisioner: kubernetes.io/no-provisioner   # No dynamic provisioning; PV is created manually
+
+volumeBindingMode: WaitForFirstConsumer     # Wait until a Pod uses the PVC before binding
+
+
+---
+
+# Create PersistentVolume
+apiVersion: v1
+kind: PersistentVolume
+
+metadata:
+  name: nginx-pv
+
+spec:
+  capacity:
+    storage: 1Gi                            # PV provides 1Gi of storage
+
+  accessModes:
+    - ReadWriteOnce                         # Can be mounted as read-write by one node
+
+  storageClassName: manually-created-storage
+  # PV and PVC must use the same StorageClass
+
+  hostPath:
+    path: /data/nginx                       # Storage path on the node
+
+
+---
+
+# Create Namespace
+apiVersion: v1
+kind: Namespace
+
+metadata:
+  name: nginx-ns
+
+
+---
+
+# Create PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+  name: nginx-pvc
+  namespace: nginx-ns
+
+spec:
+  accessModes:
+    - ReadWriteOnce                         # PVC requests ReadWriteOnce access
+
+  storageClassName: manually-created-storage
+  # Must match the PV's storageClassName
+
+  resources:
+    requests:
+      storage: 1Gi                          # PVC requests 1Gi of storage
+
+
+---
+
+# Create Pod
+apiVersion: v1
+kind: Pod
+
+metadata:
+  name: nginx-pod
+  namespace: nginx-ns
+
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx:latest
+
+      ports:
+        - containerPort: 80
+
+      volumeMounts:
+        - name: nginx-storage
+          mountPath: /data                   # Mount PVC inside the container
+
+  volumes:
+    - name: nginx-storage
+      persistentVolumeClaim:
+        claimName: nginx-pvc                 # PVC used by the Pod

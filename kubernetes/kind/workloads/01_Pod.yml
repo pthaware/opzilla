@@ -1,0 +1,22 @@
+# Create Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx-ns
+
+---
+
+# Create Pod
+apiVersion: v1
+kind: Pod
+
+metadata:
+  name: nginx-pod
+  namespace: nginx-ns
+
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx:latest
+      ports:
+        - containerPort: 80
