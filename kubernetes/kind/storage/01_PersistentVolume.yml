@@ -1,0 +1,16 @@
+# Create PersistentVolume
+apiVersion: v1                         # Kubernetes API version
+kind: PersistentVolume                 # Resource type: PersistentVolume (PV)
+
+metadata:
+  name: nginx-pv                       # Name of the PersistentVolume
+
+spec:
+  capacity:
+    storage: 1Gi                       # Total storage capacity provided by the PV
+
+  accessModes:
+    - ReadWriteOnce                    # Can be mounted as read-write by one node at a time
+
+  hostPath:
+    path: /data/nginx                  # Storage location on the Kubernetes node
