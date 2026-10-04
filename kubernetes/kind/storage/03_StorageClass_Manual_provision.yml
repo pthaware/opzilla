@@ -1,0 +1,73 @@
+########################################
+# Create Namespace
+########################################
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx-ns
+
+---
+########################################
+# Create Persistent Volume
+########################################
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nginx-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+
+  persistentVolumeReclaimPolicy: Retain
+
+  storageClassName: manual
+
+  hostPath:
+    path: /tmp/external-data/nginx
+    type: DirectoryOrCreate
+
+---
+########################################
+# Create Persistent Volume Claim
+########################################
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nginx-pvc
+  namespace: nginx-ns
+spec:
+  accessModes:
+    - ReadWriteOnce
+
+  resources:
+    requests:
+      storage: 1Gi
+
+  storageClassName: manual
+
+---
+########################################
+# Create Pod
+########################################
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  namespace: nginx-ns
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx:latest
+      ports:
+        - containerPort: 80
+
+      volumeMounts:
+        - name: nginx-volume
+          mountPath: /usr/share/nginx/html
+
+  volumes:
+    - name: nginx-volume
+      persistentVolumeClaim:
+        claimName: nginx-pvc
