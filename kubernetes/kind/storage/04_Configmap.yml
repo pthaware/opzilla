@@ -1,0 +1,61 @@
+# Create Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx-ns
+
+---
+# Create ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: nginx-ns
+data:
+  APP_ENV: "staging"
+  APP_DEBUG: "true"
+
+---
+# Create Nginx Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  namespace: nginx-ns
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx:latest
+      ports:
+        - containerPort: 80
+      env:
+        - name: APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: APP_ENV
+
+        - name: APP_DEBUG
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: APP_DEBUG
+
+---
+# Create Test Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pod
+  namespace: nginx-ns
+spec:
+  containers:
+    - name: test-container
+      image: busybox:latest
+      command: ["sh", "-c", "echo APP_ENV=$APP_ENV && sleep 3600"]
+      env:
+        - name: APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: APP_ENV
