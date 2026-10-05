@@ -1,0 +1,51 @@
+# ==========================================
+# 1. Create Namespace
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx-ns
+
+
+---
+# ==========================================
+# 2. Create Deployment
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: nginx-ns
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-pod
+  template:
+    metadata:
+      labels:
+        app: nginx-pod
+    spec:
+      containers:
+        - name: nginx-container
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+
+  
+---
+# ==========================================
+# 3. Create ClusterIP Service
+# ==========================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: nginx-ns
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx-pod
+  ports:
+    - port: 80
+      targetPort: 80
