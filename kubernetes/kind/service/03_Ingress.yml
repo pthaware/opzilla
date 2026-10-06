@@ -4,31 +4,23 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: nginx-ns
+  name: dev-ns
 
 
 ---
 # ==========================================
-# 2. Create Deployment
+# 2. Create Pod
 # ==========================================
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  name: nginx-deployment
-  namespace: nginx-ns
+  name: shopping-pod
+  labels:
+    app: shopping-app
 spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: nginx-pod
-  template:
-    metadata:
-      labels:
-        app: nginx-pod
-    spec: 
-      containers:
-        - name: nginx-container
-          image: nginx:latest
-          ports:
-            - containerPort: 80
+  containers:
+    - name: shopping
+      image: piyushthaware07/simple-fastapi:latest
+      ports:
+        - containerPort: 8000
 

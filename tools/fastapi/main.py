@@ -1,24 +1,26 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 import httpx
+import socket
+import os
 
-app = FastAPI(title="Simple FastAPI App")
+app = FastAPI()
 
 
-# -------------------------
-# Home
-# -------------------------
+def get_host_ip():
+    return socket.gethostbyname(socket.gethostname())
+
+
 @app.get("/")
 def home():
     return {
-        "message": "FastAPI app is running"
+        "message": "FastAPI app is running",
+        "host_ip": get_host_ip(),
+        "port": os.getenv("PORT", "8000")
     }
 
 
-# -------------------------
-# Get Users
-# -------------------------
 @app.get("/users")
-def get_users():
+def users():
     return [
         {"id": 1, "name": "John"},
         {"id": 2, "name": "Alice"},
@@ -26,27 +28,19 @@ def get_users():
     ]
 
 
-# -------------------------
-# Get Posts
-# -------------------------
 @app.get("/posts")
-async def get_posts():
-    url = "https://jsonplaceholder.typicode.com/posts"
+async def posts():
     async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-    if response.status_code != 200:
-        raise HTTPException(status_code=500,detail="Failed to get posts")
+        response = await client.get(
+            "https://jsonplaceholder.typicode.com/posts"
+        )
     return response.json()
 
 
-# -------------------------
-# Get Todos
-# -------------------------
 @app.get("/todos")
-async def get_todos():
-    url = "https://jsonplaceholder.typicode.com/todos"
+async def todos():
     async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-    if response.status_code != 200:
-        raise HTTPException(status_code=500,detail="Failed to get todos")
+        response = await client.get(
+            "https://jsonplaceholder.typicode.com/todos"
+        )
     return response.json()
