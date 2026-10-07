@@ -1,0 +1,116 @@
+###############################################################
+# Create Namespace
+###############################################################
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+
+---
+###############################################################
+# Create Shop Pod
+###############################################################
+apiVersion: v1
+kind: Pod
+metadata:
+  name: shop-pod
+  namespace: dev
+  labels:
+    app: shop-app
+spec:
+  containers:
+    - name: shop-container
+      image: piyushthaware07/shop-app:latest
+      ports:
+        - containerPort: 8000
+      env:
+        - name: APP_PORT
+          value: "8000"
+        - name: APP_TYPE
+          value: "shop-app"
+
+---
+###############################################################
+# Create Todo Pod
+###############################################################
+apiVersion: v1
+kind: Pod
+metadata:
+  name: todo-pod
+  namespace: dev
+  labels:
+    app: todo-app
+spec:
+  containers:
+    - name: todo-container
+      image: piyushthaware07/todo-app:latest
+      ports:
+        - containerPort: 8001
+      env:
+        - name: APP_PORT
+          value: "8001"
+        - name: APP_TYPE
+          value: "todo-app"
+
+---
+###############################################################
+# Create Shop Service
+###############################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-service
+  namespace: dev
+spec:
+  type: ClusterIP
+  selector:
+    app: shop-app
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+
+---
+###############################################################
+# Create Todo Service
+###############################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-service
+  namespace: dev
+spec:
+  type: ClusterIP
+  selector:
+    app: todo-app
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001
+
+---
+###############################################################
+# Allow Shop App -> Todo App
+###############################################################
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-shop-to-todo
+  namespace: dev
+
+spec:
+  podSelector:
+    matchLabels:
+      app: todo-app
+
+  policyTypes:
+    - Ingress
+
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: shop-app
+      ports:
+        - protocol: TCP
+          port: 8001
