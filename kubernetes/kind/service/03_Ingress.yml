@@ -1,26 +1,119 @@
-# ==========================================
-# 1. Create Namespace
-# ==========================================
+###############################################################
+# Create Namespace
+###############################################################
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: dev-ns
-
+  name: dev
 
 ---
-# ==========================================
-# 2. Create Pod
-# ==========================================
+###############################################################
+# Create Shop Pod
+###############################################################
 apiVersion: v1
 kind: Pod
 metadata:
-  name: shopping-pod
+  name: shop-pod
+  namespace: dev
   labels:
-    app: shopping-app
+    app: shop-app
 spec:
   containers:
-    - name: shopping
-      image: piyushthaware07/simple-fastapi:latest
+    - name: shop-container
+      image: piyushthaware07/shop-app:latest
       ports:
         - containerPort: 8000
+      env:
+        - name: APP_PORT
+          value: "8000"
+        - name: APP_TYPE
+          value: "shop-app"
 
+---
+###############################################################
+# Create Todo Pod
+###############################################################
+apiVersion: v1
+kind: Pod
+metadata:
+  name: todo-pod
+  namespace: dev
+  labels:
+    app: todo-app
+spec:
+  containers:
+    - name: todo-container
+      image: piyushthaware07/todo-app:latest
+      ports:
+        - containerPort: 8000
+      env:
+        - name: APP_PORT
+          value: "8000"
+        - name: APP_TYPE
+          value: "todo-app"
+
+---
+###############################################################
+# Create Shop Service
+###############################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-service
+  namespace: dev
+spec:
+  type: ClusterIP
+  selector:
+    app: shop-app
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+
+---
+###############################################################
+# Create Todo Service
+###############################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-service
+  namespace: dev
+spec:
+  type: ClusterIP
+  selector:
+    app: todo-app
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8000
+
+---
+###############################################################
+# Ingress
+###############################################################
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  namespace: dev
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /shop
+            pathType: Prefix
+            backend:
+              service:
+                name: shop-service
+                port:
+                  number: 8000
+
+          - path: /todo
+            pathType: Prefix
+            backend:
+              service:
+                name: todo-service
+                port:
+                  number: 8001

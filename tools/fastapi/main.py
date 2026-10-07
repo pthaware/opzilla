@@ -13,9 +13,9 @@ def get_host_ip():
 @app.get("/")
 def home():
     return {
-        "message": "FastAPI app is running",
+        "app_type": os.getenv("APP_TYPE", "Default"),
         "host_ip": get_host_ip(),
-        "port": os.getenv("PORT", "8000")
+        "port": os.getenv("APP_PORT", "8000")
     }
 
 
