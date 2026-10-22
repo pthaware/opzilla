@@ -1,0 +1,67 @@
+# ==========================================
+# 1. Create Namespace for Saol Team
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: saol-team
+
+---
+# ==========================================
+# 2. Set Overall Resource Quota for Saol Team
+# ==========================================
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: saol-team-quota
+  namespace: saol-team
+spec:
+  hard:
+    requests.cpu: "1"
+    requests.memory: 1Gi
+
+---
+# ==========================================
+# 3. Piyush creates the first Pod
+#    CPU requested: 500m
+#    Memory requested: 512Mi
+# ==========================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: piyush-pod
+  namespace: saol-team
+  labels:
+    created-by: piyush
+spec:
+  containers:
+    - name: nginx
+      image: nginx:latest
+      resources:
+        requests:
+          cpu: "500m"
+          memory: "512Mi"
+
+---
+# ==========================================
+# 4. Gowtham attempts to create another Pod
+#    CPU requested: 700m
+#    Memory requested: 600Mi
+#    Expected: Rejected because the combined
+#    requests exceed the namespace quota
+# ==========================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gowtham-pod
+  namespace: saol-team
+  labels:
+    created-by: gowtham
+spec:
+  containers:
+    - name: nginx
+      image: nginx:latest
+      resources:
+        requests:
+          cpu: "700m"
+          memory: "600Mi"

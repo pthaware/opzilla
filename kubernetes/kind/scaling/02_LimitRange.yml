@@ -1,0 +1,92 @@
+
+# ==========================================
+# 1. Create Namespace for Saol Team
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: saol-team
+
+---
+# ==========================================
+# 2. Set Overall Resource Quota for Saol Team
+# ==========================================
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: saol-team-resource-quota
+  namespace: saol-team
+spec:
+  hard:
+    requests.cpu: "1"
+    requests.memory: 1Gi
+
+---
+# ==========================================
+# 3. Set Per-Container Defaults and Constraints
+# ==========================================
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: saol-team-container-limits
+  namespace: saol-team
+spec:
+  limits:
+    - type: Container
+      defaultRequest:
+        cpu: "250m"
+        memory: "256Mi"
+      default:
+        cpu: "500m"
+        memory: "512Mi"
+      min:
+        cpu: "100m"
+        memory: "128Mi"
+      max:
+        cpu: "1"
+        memory: "512Mi"
+
+---
+# ==========================================
+# 4. Piyush Creates a Pod
+#    Requests: 500m CPU, 512Mi memory
+#    Expected: Admitted within quota and LimitRange
+# ==========================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: piyush-pod
+  namespace: saol-team
+  labels:
+    created-by: piyush
+spec:
+  containers:
+    - name: nginx
+      image: nginx:stable
+      resources:
+        requests:
+          cpu: "500m"
+          memory: "512Mi"
+
+---
+# ==========================================
+# 5. Gowtham Attempts to Create a Pod
+#    Requests: 1 CPU, 700Mi memory
+#    Expected: Rejected by LimitRange because
+#    memory exceeds the 512Mi container maximum
+# ==========================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gowtham-pod
+  namespace: saol-team
+  labels:
+    created-by: gowtham
+spec:
+  containers:
+    - name: nginx
+      image: nginx:stable
+      resources:
+        requests:
+          cpu: "1"
+          memory: "700Mi"
