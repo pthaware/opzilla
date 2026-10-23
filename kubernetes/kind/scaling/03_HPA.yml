@@ -1,0 +1,77 @@
+# ==========================================
+# 1. Create Namespace
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development
+
+---
+# ==========================================
+# 2. Create Deployment
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: development
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-pod
+  template:
+    metadata:
+      labels:
+        app: nginx-pod
+    spec:
+      containers:
+        - name: nginx-container
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+
+---
+# ==========================================
+# 3. Create Service
+# ==========================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: development
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx-pod
+  ports:
+    - port: 80
+      targetPort: 80
+
+---
+# ==========================================
+# 4. Create Horizontal Pod Autoscaler
+# ==========================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nginx-hpa
+  namespace: development
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nginx-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
