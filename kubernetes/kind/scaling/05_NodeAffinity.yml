@@ -1,0 +1,34 @@
+# Prerequisite: Add label to node before applying Pod : kubectl label node mycluster-worker2 env=prod
+
+# ==========================================
+# 1. Create Namespace
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development
+
+---
+# ==========================================
+# 2. Create Pod
+# ==========================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  namespace: development
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: env # Node label key
+                operator: In # Match values inside list
+                values: 
+                  - prod # Required node label value
+  containers:
+    - name: nginx-container
+      image: nginx:latest
+      ports:
+        - containerPort: 80
