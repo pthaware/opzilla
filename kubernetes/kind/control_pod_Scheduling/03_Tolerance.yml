@@ -1,0 +1,41 @@
+# Tolerance: if you wish to run a pod on the tainted node you can explicity allowed it using the tolerance
+# Taint → kubectl taint nodes mycluster-worker3 app=prod:NoSchedule
+# UnTaint → kubectl taint nodes mycluster-worker3 app=prod:NoSchedule-
+
+# ==========================================
+# 1. Create Namespace
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+
+---
+# ==========================================
+# 2. Create Pod
+# ==========================================
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-daemonset
+  namespace: dev
+spec:
+  selector:
+    matchLabels:
+      app: nginx-pod
+  template:
+    metadata:
+      labels:
+        app: nginx-pod
+    spec:
+      # Allow tolerance
+      tolerations:
+        - key: "app"
+          operator: "Equal"
+          value: "prod"
+          effect: "NoSchedule"
+      containers:
+        - name: nginx-container
+          image: nginx:latest
+          ports:
+            - containerPort: 80
