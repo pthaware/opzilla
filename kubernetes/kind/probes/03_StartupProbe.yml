@@ -1,0 +1,52 @@
+# Startup probe: It is used by kuebeters to check is the application is running inside the container and the execute the liveness and readiness probe
+
+# ==========================================
+# 1. Create Namespace
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development
+
+
+---
+# ==========================================
+# 2. Create Pod with readiness probe
+# ==========================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-startup
+  labels:
+    app: nginx
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx:latest
+      ports:
+        - containerPort: 80
+
+      # Startup Probe
+      startupProbe:
+        httpGet:
+          path: /
+          port: 80
+          scheme: HTTP
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        timeoutSeconds: 2
+        failureThreshold: 3 
+
+      # Liveness Probe
+      livenessProbe:
+        httpGet:
+          path: /
+          port: 80
+        periodSeconds: 10
+
+      # Readiness Probe
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 80
+        periodSeconds: 5

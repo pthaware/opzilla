@@ -1,0 +1,36 @@
+# Liveness Probe: Kubernetes uses a liveness probe to check whether a container is healthy. If the probe fails repeatedly, Kubernetes restarts the container.
+
+# ==========================================
+# 1. Create Namespace
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development
+
+---
+# ==========================================
+# 2. Create Pod
+# ==========================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  namespace: development
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx:latest
+      ports:
+        - containerPort: 80
+
+      # Liveness Probe
+      livenessProbe:
+        httpGet:
+          path: /                  # Checks the root URL
+          port: 80                 # Checks port 80
+          scheme: HTTP             # Uses HTTP protocol
+        initialDelaySeconds: 10    # Waits 10 seconds before first probe
+        periodSeconds: 5           # Runs probe every 5 seconds
+        timeoutSeconds: 2          # Maximum wait time for response
+        failureThreshold: 3        # Restarts after 3 consecutive failures

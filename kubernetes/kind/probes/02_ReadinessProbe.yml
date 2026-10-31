@@ -1,0 +1,56 @@
+# Readiness Probe: kubernetes uses a readiness probe to check is the container is read to receive the incoming traffic if readiness probe keeping failing the kuberters remove the pod from the servuce endpoint
+
+# ==========================================
+# 1. Create Namespace
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development
+
+---
+# ==========================================
+# 2. Create Pod With Readiness Probe
+# ==========================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  namespace: development
+  labels:
+    app: nginx-pod
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx:latest
+      ports:
+        - containerPort: 80
+
+      # Readiness Probe
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 80
+          scheme: HTTP
+        initialDelaySeconds: 10   # Wait 10 seconds before the first readiness check
+        periodSeconds: 5          # Perform readiness check every 5 seconds
+        timeoutSeconds: 2         # Probe fails if response takes more than 2 seconds
+        failureThreshold: 3       # Mark Pod NotReady after 3 consecutive failures
+        successThreshold: 1       # Mark Pod Ready after 1 successful check
+
+---
+# ==========================================
+# 3. Create Service
+# ==========================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: development
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx-pod
+  ports:
+    - port: 80
+      targetPort: 80
