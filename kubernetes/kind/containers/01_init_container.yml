@@ -1,0 +1,39 @@
+# Init container : Executes before the main application container to perform initialization tasks such as configuration setup, downloading files from the internet, and checking dependencies.
+
+# ==========================================
+# 1. Create Namespace
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development
+
+---
+# ==========================================
+# 2. Create Pod with Init Container
+# ==========================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-init-pod
+  namespace: development
+spec:
+  # ==========================================
+  # Init Container
+  # ==========================================
+  initContainers:
+    - name: init-container
+      image: busybox:latest
+      command:
+        - sh
+        - -c
+        - "echo Initializing application... && sleep 10 && echo Initialization completed"
+
+  # ==========================================
+  # Main Application Container
+  # ==========================================
+  containers:
+    - name: nginx-container
+      image: nginx:latest
+      ports:
+        - containerPort: 80

@@ -1,0 +1,56 @@
+# Sidecar Container: A Sidecar Container is an additional container that runs alongside the main application container inside the same Pod to provide supporting functionality, such as log collection, monitoring, proxying network traffic, or syncing configuration files.
+
+# ==========================================
+# 1. Create Namespace
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development
+
+---
+# ==========================================
+# 2. Create Pod with Sidecar Container
+# ==========================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  namespace: development
+
+spec:
+  # Shared Volume
+  volumes:
+    - name: shared-logs
+      emptyDir: {}
+
+  # ==========================================
+  # Main Application Container
+  # ==========================================
+  containers:
+    - name: nginx-container
+      image: nginx:latest
+      ports:
+        - containerPort: 80
+
+      volumeMounts:
+        - name: shared-logs
+          mountPath: /var/log/nginx
+
+    # ==========================================
+    # Sidecar Container
+    # ==========================================
+    - name: sidecar-container
+      image: busybox:latest
+
+      command:
+        - sh
+        - -c
+        - |
+          echo "Sidecar started..."
+          touch /var/log/nginx/access.log
+          tail -f /var/log/nginx/access.log
+
+      volumeMounts:
+        - name: shared-logs
+          mountPath: /var/log/nginx
